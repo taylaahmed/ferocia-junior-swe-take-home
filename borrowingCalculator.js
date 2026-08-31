@@ -125,10 +125,15 @@ function askInput(rl, prompt) {
 }
 
 function validateInput(input, key, label) {
-    const value = parseFloat(input)
-    if (isNaN(value)) {
+    const trimmed = input ? String(input).trim() : "";
+    //const value = parseFloat(input)
+    if (!trimmed) {
         throw new Error(`${key} is required`);
-    } else if (value < 0) {
+    }
+
+    const value = parseFloat(trimmed);
+
+    if (!Number.isFinite(value) || value < 0) {
         throw new Error(`Entered ${label} is invalid`);
     }
     return value;
