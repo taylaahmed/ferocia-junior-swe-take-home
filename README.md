@@ -309,3 +309,21 @@ Gross Annual Income: $hii
 }
 ```
 
+### Phase 5: Handle test suit
+
+**Current Output:**
+```text
+Maximum Borrowing Power at 7%: $524,173.77
+Assumed Monthly Mortgage Repayment: $4,600 over 30 years
+```
+
+**Expected Output**
+```test
+assert.strictEqual(result.monthlyRepayment, 4200);
+Assumed Monthly Mortgage Repayment: $4,200 over 30 years
+```
+
+**Ideas for Error placement:**
+- Most likely within the Tax/HEM calculation
+- Return value of a function
+
