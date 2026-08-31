@@ -124,10 +124,12 @@ function askInput(rl, prompt) {
     return new Promise((resolve) => rl.question(prompt, resolve));
 }
 
-function validateIncome(input) {
+function validateInput(input, key, label) {
     const value = parseFloat(input)
-    if (isNaN(value) || value < 0) {
-        throw new Error("...Error");
+    if (isNaN(value)) {
+        throw new Error(`${key} is required`);
+    } else if (value < 0) {
+        throw new Error(`Entered ${label} is invalid`);
     }
     return value;
 }
@@ -150,21 +152,48 @@ async function runConsoleMode() {
         while (income === undefined) {
             try {
                     const incomeInput = await askInput(rl, "Gross Annual Income: $");
-                    income = validateIncome(incomeInput);
-            } catch {
-                consoleError("Income is required", "Provide income parameter");
+                    income = validateInput(incomeInput, "Income", "income");
+            } catch (error) {
+                consoleError(error.message, "Provide income parameter");
             }
         }
 
-        const dependents = await askInput(rl, "Number of Dependents: ");
-        const expenses = await askInput(rl, "Declared Monthly Expenses: $");
-        const creditLimits = await askInput(rl, "Total Credit Card Limits: $");
+        let dependents;
+        while (dependents === undefined) {
+            try {
+                    const dependentsInput = await askInput(rl, "Number of Dependents: ");
+                    dependents = validateInput(dependentsInput, "Dependents", "dependents");
+            } catch (error) {
+                consoleError(error.message, "Provide dependents parameter");
+            }
+        }
+
+        let expenses;
+        while (expenses === undefined) {
+            try {
+                    const expensesInput = await askInput(rl, "Declared Monthly Expenses: $");
+                    expenses = validateInput(expensesInput, "Expenses", "expenses");
+            } catch (error) {
+                consoleError(error.message, "Provide expenses parameter");
+            }
+        }
+
+        let creditLimits;
+        while (creditLimits === undefined) {
+            try {
+                    const creditLimitsInput = await askInput(rl, "Total Credit Card Limits: $");
+                    creditLimits = validateInput(creditLimitsInput, "Credit limits", "credit limits");
+            } catch (error) {
+                consoleError(error.message, "Provide credit limits parameter");
+            }
+        }
+
 
         const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
         const result = await calculateBorrowingPower(
             income,
-            parseInt(dependents),
+            dependents,
             parseFloat(expenses),
             parseFloat(creditLimits),
             assessmentRate
@@ -177,35 +206,7 @@ async function runConsoleMode() {
         rl.close();
 }
 
-/* async function runConsoleMode() {
-    
 
-    rl.question("Gross Annual Income: $", (income) => {
-        rl.question("Number of Dependents: ", (dependents) => {
-            rl.question("Declared Monthly Expenses: $", (expenses) => {
-                rl.question("Total Credit Card Limits: $", async (creditLimits) => {
-                    
-                    // Banks assess loans using base rate + buffer for safety
-                    const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
-
-                    const result = await calculateBorrowingPower(
-                        parseFloat(income),
-                        parseInt(dependents),
-                        parseFloat(expenses),
-                        parseFloat(creditLimits),
-                        assessmentRate
-                    );
-
-                    console.log("\n--- Calculation Summary ---");
-                    console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $${result.maxLoanAmount.toLocaleString()}`);
-                    console.log(`Assumed Monthly Mortgage Repayment: $${result.monthlyRepayment.toLocaleString()} over 30 years`);
-                    
-                    rl.close();
-                });
-            });
-        });
-    });
-} */
 
 if (require.main === module) {
     runConsoleMode();
