@@ -19,38 +19,35 @@ async function getTax(income) {
     //Variables for API call
     const url = `http://localhost:3000/api/tax?income=${encodeURIComponent(income)}`;
     const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
-    // REPLACE THIS
+
     try {
+        //fetch API - place into var response
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/jason',
                 'Authorization': `Bearer ${PAT}`,
+                // Auth token - need to access API
             }
         });
+        //if the API call fails
         if (!response.ok) {
-            const errorText = await res.text();
-            console.log('Status Code:', res.status);
-            console.log('Response Body:', errorText);
-            throw new Error(`API Error: ${res.status}`);
+            const errorText = await response.text();
+            //TO UPDATE LATER
+            throw new Error(`API Error: ${response.status}`);
         }
 
         const taxData = await response.json();
 
-        console.log('--- API RAW DATA OUTPUT ---');
-        console.log(taxData);
-        console.log('Type of data:', typeof taxData);
-        console.log('---------------------------');
-
-        return taxData;
+        return Math.round(taxData.tax);
 
     } catch (error) {
         console.log('Error', error);
+        //TO UPDATE LATER
         throw error;
 
     }
-    // Write your TAX API call code here.
-    //return Math.round(income * 0.25);
+
 }
 
 function getHEM(income, dependents) {
@@ -62,9 +59,9 @@ function getHEM(income, dependents) {
 /**
  * Calculates the total borrowing power amount and the monthly repayment configuration
  */
-function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
+async function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
     // 1. Calculate Net Monthly Income after tax deductions
-    const annualTax = getTax(income);
+    const annualTax = await getTax(income);
     const netMonthlyIncome = (income - annualTax) / 12;
 
     // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
@@ -95,7 +92,7 @@ function calculateBorrowingPower(income, dependents, expenses, creditLimits, ann
     };
 }
 
-function runConsoleMode() {
+async function runConsoleMode() {
     const readline = require('readline');
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
@@ -105,12 +102,12 @@ function runConsoleMode() {
     rl.question("Gross Annual Income: $", (income) => {
         rl.question("Number of Dependents: ", (dependents) => {
             rl.question("Declared Monthly Expenses: $", (expenses) => {
-                rl.question("Total Credit Card Limits: $", (creditLimits) => {
+                rl.question("Total Credit Card Limits: $", async (creditLimits) => {
                     
                     // Banks assess loans using base rate + buffer for safety
                     const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
-                    const result = calculateBorrowingPower(
+                    const result = await calculateBorrowingPower(
                         parseFloat(income),
                         parseInt(dependents),
                         parseFloat(expenses),
