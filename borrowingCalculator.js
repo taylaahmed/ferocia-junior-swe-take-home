@@ -119,12 +119,66 @@ async function calculateBorrowingPower(income, dependents, expenses, creditLimit
     };
 }
 
+
+function askInput(rl, prompt) {
+    return new Promise((resolve) => rl.question(prompt, resolve));
+}
+
+function validateIncome(input) {
+    const value = parseFloat(input)
+    if (isNaN(value) || value < 0) {
+        throw new Error("...Error");
+    }
+    return value;
+}
+
+function consoleError(error, message) {
+    console.log(JSON.stringify({
+        error: error,
+        message: message
+    }, null, 2))
+}
+
 async function runConsoleMode() {
     const readline = require('readline');
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
     console.log("Mortgage Borrowing Power Calculator");
     console.log("===================================");
+
+        let income;
+        while (income === undefined) {
+            try {
+                    const incomeInput = await askInput(rl, "Gross Annual Income: $");
+                    income = validateIncome(incomeInput);
+            } catch {
+                consoleError("Income is required", "Provide income parameter");
+            }
+        }
+
+        const dependents = await askInput(rl, "Number of Dependents: ");
+        const expenses = await askInput(rl, "Declared Monthly Expenses: $");
+        const creditLimits = await askInput(rl, "Total Credit Card Limits: $");
+
+        const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
+
+        const result = await calculateBorrowingPower(
+            income,
+            parseInt(dependents),
+            parseFloat(expenses),
+            parseFloat(creditLimits),
+            assessmentRate
+            );
+        
+        console.log("\n--- Calculation Summary ---");
+        console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $${result.maxLoanAmount.toLocaleString()}`);
+        console.log(`Assumed Monthly Mortgage Repayment: $${result.monthlyRepayment.toLocaleString()} over 30 years`);
+
+        rl.close();
+}
+
+/* async function runConsoleMode() {
+    
 
     rl.question("Gross Annual Income: $", (income) => {
         rl.question("Number of Dependents: ", (dependents) => {
@@ -151,7 +205,7 @@ async function runConsoleMode() {
             });
         });
     });
-}
+} */
 
 if (require.main === module) {
     runConsoleMode();
