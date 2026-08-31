@@ -50,10 +50,37 @@ async function getTax(income) {
 
 }
 
-function getHEM(income, dependents) {
-    // REPLACE THIS
-    // Write your HEM API call code here.
-    return 2000 + (dependents * 400);
+async function getHEM(income, dependents) {
+    //API variable here
+    const url = `http://localhost:3000/api/hem?income=${encodeURIComponent(income)}&dependents=${encodeURIComponent(dependents)}`;
+    const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
+
+    try {
+        //fetch API - place into var response
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/jason',
+                'Authorization': `Bearer ${PAT}`,
+                // Auth token - need to access API
+            }
+        });
+        //if the API call fails
+        if (!response.ok) {
+            const errorText = await response.text();
+            //TO UPDATE LATER
+            throw new Error(`API Error: ${response.status}`);
+        }
+
+        const hemData = await response.json();
+
+        return hemData.hem;
+
+    } catch (error) {
+        console.log('Error', error);
+        //TO UPDATE LATER
+        throw error;
+    }
 }
 
 /**
@@ -65,7 +92,7 @@ async function calculateBorrowingPower(income, dependents, expenses, creditLimit
     const netMonthlyIncome = (income - annualTax) / 12;
 
     // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
-    const baselineHEM = getHEM(income, dependents);
+    const baselineHEM = await getHEM(income, dependents);
     const totalLivingExpenses = Math.max(expenses, baselineHEM);
 
     // 3. Calculate credit card liability (~3% of total limits)
