@@ -15,10 +15,42 @@ const INTEREST_RATE = 7.0; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
 // Legacy placeholder functions to replace with API calls
-function getTax(income) {
+async function getTax(income) {
+    //Variables for API call
+    const url = `http://localhost:3000/api/tax?income=${encodeURIComponent(income)}`;
+    const PAT = "pat_abcdefghijklmnopqrstuvwxyz0123456789";
     // REPLACE THIS
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/jason',
+                'Authorization': `Bearer ${PAT}`,
+            }
+        });
+        if (!response.ok) {
+            const errorText = await res.text();
+            console.log('Status Code:', res.status);
+            console.log('Response Body:', errorText);
+            throw new Error(`API Error: ${res.status}`);
+        }
+
+        const taxData = await response.json();
+
+        console.log('--- API RAW DATA OUTPUT ---');
+        console.log(taxData);
+        console.log('Type of data:', typeof taxData);
+        console.log('---------------------------');
+
+        return taxData;
+
+    } catch (error) {
+        console.log('Error', error);
+        throw error;
+
+    }
     // Write your TAX API call code here.
-    return Math.round(income * 0.25);
+    //return Math.round(income * 0.25);
 }
 
 function getHEM(income, dependents) {
