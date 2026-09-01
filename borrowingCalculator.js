@@ -137,8 +137,15 @@ function validateInput(input, label) {
 
     const value = parseFloat(trimmed);
     //checks if the value valid number
-    if (!Number.isFinite(value) || value < 0) {
-        //Error message for entered but invalid
+    if (!Number.isFinite(value)) {
+        //Error message for entered is not a number
+        error = new Error(`${label} must be a number.`);
+        error.type = `Invalid ${label.toLowerCase()}`;
+        throw error;
+    }
+        
+    if (value < 0) {
+        //Error message for entered is a negetive number
         error = new Error(`${label} must be a non-negative number.`);
         error.type = `Invalid ${label.toLowerCase()}`;
         throw error;
