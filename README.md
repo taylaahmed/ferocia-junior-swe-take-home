@@ -1,4 +1,4 @@
-# ferocia-junior-swe-take-home
+# Tayla Borrowing Calculator
 
 
 ## Testing
@@ -309,11 +309,14 @@ Gross Annual Income: $hii
 }
 ```
 
-### Phase 5: Handle test suit
+## Test Suit Discrepancy
+
+
+### Initial Issue
 
 **Current Output:**
 ```text
-Maximum Borrowing Power at 7%: $524,173.77
+Maximum Borrowing Power at 7.5%: $524,173.77
 Assumed Monthly Mortgage Repayment: $4,600 over 30 years
 ```
 
@@ -326,4 +329,21 @@ Assumed Monthly Mortgage Repayment: $4,200 over 30 years
 **Ideas for Error placement:**
 - Most likely within the Tax/HEM calculation
 - Return value of a function
+
+### Testing solutions
+
+I attempted to find number differences between my implication and the inital provided code and could not find the point of error.
+
+**Walking through the code and printing values at each step gave me:**
+
+- Gross annual income: $120,000
+- Tax returned by /api/tax: $24,000
+- Net monthly income: ($120,000 - $24,000) / 12 = $8,000
+- HEM returned by /api/hem for $120,000 income and 2 dependents: $3,100
+- Declared monthly expenses: $3,000
+- Living expenses used: max($3,000, $3,100) = $3,100
+- Credit card liability: $10,000 × 3% = $300
+- Monthly repayment capacity: $8,000 - $3,100 - $300 = $4,600
+
+My theory is that this difference came from within the HEM for 2 vs. 3 depenents as this has an exact $400 difference which would explain the disparity. 
 

@@ -32,13 +32,11 @@ async function getTax(income) {
         });
         //if the API call fails
         if (!response.ok) {
-            const errorText = await response.text();
-            //TO UPDATE LATER
+
             throw new Error(`API Error: ${response.status}`);
         }
 
         const taxData = await response.json();
-        console.log(taxData);
 
         return Math.round(taxData.tax);
 
@@ -68,15 +66,13 @@ async function getHEM(income, dependents) {
         });
         //if the API call fails
         if (!response.ok) {
-            const errorText = await response.text();
-            //TO UPDATE LATER
+
             throw new Error(`API Error: ${response.status}`);
         }
 
         const hemData = await response.json();
-        console.log(hemData);
 
-        return 2000 + hemData.hem;
+        return hemData.hem;
 
     } catch (error) {
         console.log('Error', error);
@@ -97,14 +93,12 @@ async function calculateBorrowingPower(income, dependents, expenses, creditLimit
     // 2. Determine living expenses (User declared expenses vs HEM baseline, whichever is higher)
     const baselineHEM = await getHEM(income, dependents);
     const totalLivingExpenses = Math.max(expenses, baselineHEM);
-    console.log(totalLivingExpenses);
 
     // 3. Calculate credit card liability (~3% of total limits)
     const creditCardLiability = creditLimits * 0.03;
 
     // 4. Calculate monthly repayment capacity
     const maxMonthlyRepayment = netMonthlyIncome - totalLivingExpenses - creditCardLiability;
-    console.log(maxMonthlyRepayment);
 
     // Return early if user cannot afford a loan at all
     if (maxMonthlyRepayment <= 0) {
@@ -126,10 +120,12 @@ async function calculateBorrowingPower(income, dependents, expenses, creditLimit
 
 
 function askInput(rl, prompt) {
+    //asks for input and recieves promise
     return new Promise((resolve) => rl.question(prompt, resolve));
 }
 
 function validateInput(input, key, label) {
+    //trim to check for no or space input
     const trimmed = input ? String(input).trim() : "";
     //const value = parseFloat(input)
     if (!trimmed) {
@@ -137,14 +133,16 @@ function validateInput(input, key, label) {
     }
 
     const value = parseFloat(trimmed);
-
+    //checks if the value valid number
     if (!Number.isFinite(value) || value < 0) {
+        //Error message for entered but invalid
         throw new Error(`Entered ${label} is invalid`);
     }
     return value;
 }
 
 function consoleError(error, message) {
+    //standard error message format
     console.log(JSON.stringify({
         error: error,
         message: message
@@ -159,13 +157,17 @@ async function runConsoleMode() {
     console.log("===================================");
 
         let income;
+        //asks for income until recieves valid input
         while (income === undefined) {
             try {
                     const incomeInput = await askInput(rl, "Gross Annual Income: $");
                     income = validateInput(incomeInput, "Income", "income");
                     if (income === 0)
                     {
-                        return { maxLoanAmount: 0, monthlyRepayment: 0 };
+                        //return early if no income
+                        console.log({ maxLoanAmount: 0, monthlyRepayment: 0 });
+                        rl.close();
+                        return 0;
                     }
             } catch (error) {
                 consoleError(error.message, "Provide income parameter");
@@ -173,6 +175,7 @@ async function runConsoleMode() {
         }
 
         let dependents;
+        //asks for dependents until recieves valid input
         while (dependents === undefined) {
             try {
                     const dependentsInput = await askInput(rl, "Number of Dependents: ");
@@ -183,6 +186,7 @@ async function runConsoleMode() {
         }
 
         let expenses;
+        //asks for expenses until recieves valid input
         while (expenses === undefined) {
             try {
                     const expensesInput = await askInput(rl, "Declared Monthly Expenses: $");
@@ -193,6 +197,7 @@ async function runConsoleMode() {
         }
 
         let creditLimits;
+        //asks for creditLimit until recieves valid input
         while (creditLimits === undefined) {
             try {
                     const creditLimitsInput = await askInput(rl, "Total Credit Card Limits: $");
@@ -202,9 +207,10 @@ async function runConsoleMode() {
             }
         }
 
-
+        //calculate assessmentRate;
         const assessmentRate = INTEREST_RATE + ASSESSMENT_RATE_BUFFER;
 
+        //pass inputs to calculateBorrowingPower function
         const result = await calculateBorrowingPower(
             income,
             dependents,
