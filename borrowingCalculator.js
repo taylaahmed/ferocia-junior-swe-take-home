@@ -192,9 +192,9 @@ async function runConsoleMode() {
         while (dependents === undefined) {
             try {
                     const dependentsInput = await askInput(rl, "Number of Dependents: ");
-                    dependents = validateInput(dependentsInput, "dependents", "Dependents");
+                    dependents = validateInput(dependentsInput, "Dependents");
             } catch (error) {
-                consoleError(error.message, "Provide dependents parameter");
+                consoleError(error.type, error.message);
             }
         }
 
@@ -202,17 +202,17 @@ async function runConsoleMode() {
         //asks for expenses until recieves valid input
         while (expenses === undefined) {
             try {
-                    const expensesInput = await askInput(rl, "Declared Monthly Expenses: $");
-                    expenses = validateInput(expensesInput, "Expenses", "expenses");
-                    if (expenses >= income/12)
-                    {
+                const expensesInput = await askInput(rl, "Declared Monthly Expenses: $");
+                expenses = validateInput(expensesInput, "Expenses");
+                if (expenses >= income/12)
+                {
                         //return early monthly expenses are more then monthly income
-                        loanIneligible();
-                        rl.close();
-                        return 0;
-                    }
+                    loanIneligible();
+                    rl.close();
+                    return 0;
+                }
             } catch (error) {
-                consoleError(error.message, "Provide expenses parameter");
+                consoleError(error.type, error.message);
             }
         }
 
@@ -220,10 +220,10 @@ async function runConsoleMode() {
         //asks for creditLimit until recieves valid input
         while (creditLimits === undefined) {
             try {
-                    const creditLimitsInput = await askInput(rl, "Total Credit Card Limits: $");
-                    creditLimits = validateInput(creditLimitsInput, "Credit limits", "credit limits");
+                const creditLimitsInput = await askInput(rl, "Total Credit Card Limits: $");
+                creditLimits = validateInput(creditLimitsInput, "Credit limits");
             } catch (error) {
-                consoleError(error.message, "Provide credit limits parameter");
+                consoleError(error.type, error.message);
             }
         }
 
