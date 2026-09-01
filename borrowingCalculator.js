@@ -124,33 +124,46 @@ function askInput(rl, prompt) {
     return new Promise((resolve) => rl.question(prompt, resolve));
 }
 
-function validateInput(input, key, label) {
+function validateInput(input, label) {
+    let error;
     //trim to check for no or space input
     const trimmed = input ? String(input).trim() : "";
     //const value = parseFloat(input)
     if (!trimmed) {
-        throw new Error(`${key} is required`);
+        error = new Error(`Provide ${label.toLowerCase()} parameter.`);
+        error.type = `${label} is required.`
+        throw error;
     }
 
     const value = parseFloat(trimmed);
     //checks if the value valid number
     if (!Number.isFinite(value) || value < 0) {
         //Error message for entered but invalid
-        throw new Error(`Entered ${label} is invalid`);
+        error = new Error(`${label} must be a non-negative number.`);
+        error.type = `Invalid ${label.toLowerCase()}`;
+        throw error;
     }
     return value;
 }
 
 function consoleError(error, message) {
+
     //standard error message format
-    console.log(JSON.stringify({
-        error: error,
-        message: message
-    }, null, 2))
+    console.log("\n--- Error ---");
+    console.log(`Error: ${error}`);
+    console.log(`Message: ${message}`);
+}
+
+function loanIneligible() {
+    //message printed early if person is completely ineligible for a loan
+    console.log("\n--- Sorry you are eligible for a loan ---")
+    console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $0`);
+    console.log(`Assumed Monthly Mortgage Repayment: $0`);
 }
 
 async function runConsoleMode() {
     const readline = require('readline');
+    //recieves input from console
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
     console.log("Mortgage Borrowing Power Calculator");
@@ -161,16 +174,16 @@ async function runConsoleMode() {
         while (income === undefined) {
             try {
                     const incomeInput = await askInput(rl, "Gross Annual Income: $");
-                    income = validateInput(incomeInput, "Income", "income");
+                    income = validateInput(incomeInput, "Income");
                     if (income === 0)
                     {
                         //return early if no income
-                        console.log({ maxLoanAmount: 0, monthlyRepayment: 0 });
+                        loanIneligible();
                         rl.close();
-                        return 0;
+                        return (0);
                     }
             } catch (error) {
-                consoleError(error.message, "Provide income parameter");
+                consoleError(error.type, error.message);
             }
         }
 
@@ -179,7 +192,7 @@ async function runConsoleMode() {
         while (dependents === undefined) {
             try {
                     const dependentsInput = await askInput(rl, "Number of Dependents: ");
-                    dependents = validateInput(dependentsInput, "Dependents", "dependents");
+                    dependents = validateInput(dependentsInput, "dependents", "Dependents");
             } catch (error) {
                 consoleError(error.message, "Provide dependents parameter");
             }
@@ -191,6 +204,13 @@ async function runConsoleMode() {
             try {
                     const expensesInput = await askInput(rl, "Declared Monthly Expenses: $");
                     expenses = validateInput(expensesInput, "Expenses", "expenses");
+                    if (expenses >= income/12)
+                    {
+                        //return early monthly expenses are more then monthly income
+                        loanIneligible();
+                        rl.close();
+                        return 0;
+                    }
             } catch (error) {
                 consoleError(error.message, "Provide expenses parameter");
             }
