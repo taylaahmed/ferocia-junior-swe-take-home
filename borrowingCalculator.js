@@ -1,11 +1,10 @@
 /**
  * Borrowing Power Calculator
  * 
- * Gen's incomplete prototype. 
+ * Tayla's prototype. 
  * This currently calculates what a user can borrow over 30 years.
- * Currently this code uses placeholder methods for Tax and HEM values. 
+ * Currently this code uses API calls to recieve tax and HEM values. 
  * 
- * TODO: Refactor the code to pull Tax and HEM values from an API call.
  * A server.js has been provided to supply these values.
  */
 
@@ -14,7 +13,10 @@ const LOAN_TERM_MONTHS = 360; // 30 Years
 const INTEREST_RATE = 7; // 7.0% baseline interest rate
 const ASSESSMENT_RATE_BUFFER = 3.0; // 3.0% buffer added to interest rates
 
-// Legacy placeholder functions to replace with API calls
+// ====================
+// API Functions
+// ====================
+
 async function getTax(income) {
     //Variables for API call
     const url = `http://localhost:3000/api/tax?income=${encodeURIComponent(income)}`;
@@ -81,9 +83,10 @@ async function getHEM(income, dependents) {
     }
 }
 
-/**
- * Calculates the total borrowing power amount and the monthly repayment configuration
- */
+// ====================
+// Calculator Functions
+// ====================
+
 async function calculateBorrowingPower(income, dependents, expenses, creditLimits, annualAssessmentRate) {
     
     // 1. Calculate Net Monthly Income after tax deductions
@@ -118,6 +121,9 @@ async function calculateBorrowingPower(income, dependents, expenses, creditLimit
     };
 }
 
+// ====================
+// Input validation
+// ====================
 
 function askInput(rl, prompt) {
     //asks for input and recieves promise
@@ -153,6 +159,10 @@ function validateInput(input, label) {
     return value;
 }
 
+// ====================
+// Error output
+// ====================
+
 function consoleError(error, message) {
 
     //standard error message format
@@ -163,10 +173,14 @@ function consoleError(error, message) {
 
 function loanIneligible() {
     //message printed early if person is completely ineligible for a loan
-    console.log("\n--- Sorry you are eligible for a loan ---")
+    console.log("\n--- Sorry, you are not eligible for a loan ---")
     console.log(`Maximum Borrowing Power at ${INTEREST_RATE}%: $0`);
     console.log(`Assumed Monthly Mortgage Repayment: $0`);
 }
+
+// ====================
+// Console Functions
+// ====================
 
 async function runConsoleMode() {
     const readline = require('readline');
